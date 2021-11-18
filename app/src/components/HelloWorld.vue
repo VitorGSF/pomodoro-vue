@@ -11,6 +11,11 @@
       <button @click="stop">PAUSAR</button>
       <button @click="reset" v-if="isRunning">REINICIAR</button>
     </div>
+    <br>
+    <div>
+      <button @click="pomodoro">POMODORO</button>
+      <button @click="interval">INTERVALO</button>
+    </div>
   </div>
 </template>
 
@@ -20,17 +25,30 @@ export default {
     return {
       isRunning: false,
       instanceTime: null,
-      totalSeconds: 25 * 60
+      totalSeconds: 25 * 60,
+      intervalTime: 5 * 60,
+      pomodoroTime: true
     }
   },
   computed: {
     displayMinutes() {
-      const minutes = Math.floor(this.totalSeconds / 60)
-      return this.formaterTime(minutes)
+      if (this.pomodoroTime) {
+        const minutes = Math.floor(this.totalSeconds / 60)
+        return this.formaterTime(minutes)
+      } else {
+        const minutes = Math.floor(this.intervalTime / 60)
+        return this.formaterTime(minutes)
+      }
     },
     displaySeconds() {
-      const seconds = this.totalSeconds % 60
-      return this.formaterTime(seconds)
+      if (this.pomodoroTime) {
+        const seconds = this.totalSeconds % 60
+        return this.formaterTime(seconds)
+      } else {
+        const seconds = this.intervalTime % 60
+        return this.formaterTime(seconds)
+      }
+      
     }
   },
   methods: {
@@ -48,21 +66,45 @@ export default {
       this.stop()
       this.isRunning = true
       this.instanceTime = setInterval(() => {
-        if (this.totalSeconds == 0) {
-          let context = new AudioContext(),
-          oscillator = context.createOscillator()
-          
-          oscillator.type = 'sine'
-          oscillator.connect(context.destination)
-          oscillator.start(0)
+        if (this.pomodoroTime){
+          if (this.totalSeconds == 0) {
+            let context = new AudioContext(),
+            oscillator = context.createOscillator()
+            
+            oscillator.type = 'sine'
+            oscillator.connect(context.destination)
+            oscillator.start(0)
           } else {
-          this.totalSeconds -= 1
+            this.totalSeconds -= 1
+          }
+        } else {
+          if (this.intervalTime == 0) {
+            let context = new AudioContext(),
+            oscillator = context.createOscillator()
+            
+            oscillator.type = 'sine'
+            oscillator.connect(context.destination)
+            oscillator.start(0)
+          } else {
+            this.intervalTime -= 1
+          }
         }
       }, 1000)
     },
     reset() {
       this.stop()
-      this.totalSeconds = 25 * 60
+      if (this.pomodoroTime) {
+        this.totalSeconds = 25 * 60
+      } else {
+        this.intervalTime = 5 * 60
+      }
+      
+    },
+    interval() {
+      this.pomodoroTime = false
+    },
+    pomodoro() {
+      this.pomodoroTime = true
     }
   }
 }
